@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess — Play Online</title>
+  <meta name="description" content="A beautiful browser-based chess app with PvP, AI opponent, move history, timers, board themes, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-bg"></div>
+  <div class="setup-card">
+    <div class="logo">
+      <span class="logo-icon">♟</span>
+      <h1>Chess</h1>
+    </div>
+    <p class="tagline">Premium chess experience in your browser</p>
+
+    <div class="setup-section">
+      <label class="setup-label">Game Mode</label>
+      <div class="btn-group" id="mode-group">
+        <button class="toggle-btn active" data-value="pvp" id="btn-pvp">👥 Player vs Player</button>
+        <button class="toggle-btn" data-value="pva" id="btn-pva">🤖 Player vs AI</button>
+      </div>
+    </div>
+
+    <div class="setup-section" id="ai-options" style="display:none">
+      <label class="setup-label">Play As</label>
+      <div class="btn-group" id="color-group">
+        <button class="toggle-btn active" data-value="w" id="btn-white">♔ White</button>
+        <button class="toggle-btn" data-value="b" id="btn-black">♚ Black</button>
+      </div>
+
+      <label class="setup-label" style="margin-top:1.5rem">AI Difficulty</label>
+      <div class="btn-group" id="diff-group">
+        <button class="toggle-btn active" data-value="easy" id="btn-easy">🟢 Easy</button>
+        <button class="toggle-btn" data-value="medium" id="btn-medium">🟡 Medium</button>
+        <button class="toggle-btn" data-value="hard" id="btn-hard">🔴 Hard</button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <label class="setup-label">Time Control</label>
+
+      <!-- Category pills -->
+      <div class="tc-categories" id="tc-cat-group">
+        <button class="tc-cat active" data-cat="none">∞ None</button>
+        <button class="tc-cat" data-cat="bullet">⚡ Bullet</button>
+        <button class="tc-cat" data-cat="blitz">🔥 Blitz</button>
+        <button class="tc-cat" data-cat="rapid">🕐 Rapid</button>
+        <button class="tc-cat" data-cat="classical">♟ Classical</button>
+        <button class="tc-cat" data-cat="custom">⚙ Custom</button>
+      </div>
+
+      <!-- Time presets per category (shown/hidden by category) -->
+      <div id="tc-presets">
+        <!-- None -->
+        <div class="tc-preset-group active" data-cat="none">
+          <button class="tc-btn active" data-base="0" data-inc="0">No Timer</button>
+        </div>
+        <!-- Bullet -->
+        <div class="tc-preset-group" data-cat="bullet" style="display:none">
+          <button class="tc-btn" data-base="60"  data-inc="0">1+0</button>
+          <button class="tc-btn" data-base="120" data-inc="1">2+1</button>
+        </div>
+        <!-- Blitz -->
+        <div class="tc-preset-group" data-cat="blitz" style="display:none">
+          <button class="tc-btn" data-base="180" data-inc="0">3+0</button>
+          <button class="tc-btn" data-base="180" data-inc="2">3+2</button>
+          <button class="tc-btn" data-base="300" data-inc="0">5+0</button>
+          <button class="tc-btn" data-base="300" data-inc="3">5+3</button>
+        </div>
+        <!-- Rapid -->
+        <div class="tc-preset-group" data-cat="rapid" style="display:none">
+          <button class="tc-btn" data-base="600"  data-inc="0">10+0</button>
+          <button class="tc-btn" data-base="600"  data-inc="5">10+5</button>
+          <button class="tc-btn" data-base="900"  data-inc="10">15+10</button>
+        </div>
+        <!-- Classical -->
+        <div class="tc-preset-group" data-cat="classical" style="display:none">
+          <button class="tc-btn" data-base="1800" data-inc="0">30+0</button>
+          <button class="tc-btn" data-base="1800" data-inc="20">30+20</button>
+        </div>
+        <!-- Custom -->
+        <div class="tc-preset-group tc-custom-group" data-cat="custom" style="display:none">
+          <div class="custom-tc-row">
+            <div class="custom-tc-field">
+              <label>Minutes</label>
+              <input type="number" id="custom-minutes" min="1" max="180" value="5" />
+            </div>
+            <span class="tc-plus">+</span>
+            <div class="custom-tc-field">
+              <label>Increment (sec)</label>
+              <input type="number" id="custom-increment" min="0" max="60" value="0" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="setup-section">
+      <label class="setup-label">Board Theme</label>
+      <div class="theme-swatches" id="theme-group">
+        <button class="theme-swatch active" data-theme="classic" id="swatch-classic" title="Classic">
+          <span class="sw-light"></span><span class="sw-dark"></span>
+        </button>
+        <button class="theme-swatch" data-theme="dark" id="swatch-dark" title="Dark">
+          <span class="sw-light"></span><span class="sw-dark"></span>
+        </button>
+        <button class="theme-swatch" data-theme="neon" id="swatch-neon" title="Neon">
+          <span class="sw-light"></span><span class="sw-dark"></span>
+        </button>
+        <button class="theme-swatch" data-theme="wood" id="swatch-wood" title="Wood">
+          <span class="sw-light"></span><span class="sw-dark"></span>
+        </button>
+      </div>
+    </div>
+
+    <button class="start-btn" id="start-btn">Start Game</button>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="game-screen" class="screen">
+  <div class="game-layout">
+
+    <!-- Left Panel: Captured pieces -->
+    <aside class="side-panel left-panel">
+      <div class="panel-card captured-card">
+        <div class="captured-label">Black captured</div>
+        <div class="captured-pieces" id="captured-top"></div>
+        <div class="captured-adv" id="adv-top"></div>
+      </div>
+      <div class="panel-card captured-card">
+        <div class="captured-label">White captured</div>
+        <div class="captured-pieces" id="captured-bottom"></div>
+        <div class="captured-adv" id="adv-bottom"></div>
+      </div>
+    </aside>
+
+    <!-- Center: Clock top → Board → Clock bottom → Status → Controls -->
+    <main class="board-area">
+
+      <!-- Top player bar (opponent) -->
+      <div class="player-bar" id="player-top">
+        <div class="player-info">
+          <span class="player-avatar" id="avatar-top">♚</span>
+          <span class="player-name" id="name-top">Black</span>
+        </div>
+        <div class="player-clock" id="clock-top">—</div>
+      </div>
+
+      <!-- Board -->
+      <div class="board-wrap" id="board-wrap">
+        <div class="coords-top">
+          <span>a</span><span>b</span><span>c</span><span>d</span>
+          <span>e</span><span>f</span><span>g</span><span>h</span>
+        </div>
+        <div class="board-row-wrap">
+          <div class="coords-left" id="coords-left"></div>
+          <div id="chess-board" class="chess-board theme-classic"></div>
+          <div class="coords-right" id="coords-right"></div>
+        </div>
+        <div class="coords-bottom">
+          <span>a</span><span>b</span><span>c</span><span>d</span>
+          <span>e</span><span>f</span><span>g</span><span>h</span>
+        </div>
+      </div>
+
+      <!-- Bottom player bar (you) -->
+      <div class="player-bar" id="player-bottom">
+        <div class="player-info">
+          <span class="player-avatar" id="avatar-bottom">♔</span>
+          <span class="player-name" id="name-bottom">White</span>
+        </div>
+        <div class="player-clock" id="clock-bottom">—</div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar" id="status-bar">
+        <span id="status-text">White to move</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="ctrl-btn" id="btn-undo" title="Undo">↩ Undo</button>
+        <button class="ctrl-btn" id="btn-redo" title="Redo">↪ Redo</button>
+        <button class="ctrl-btn" id="btn-flip" title="Flip Board">⇅ Flip</button>
+        <button class="ctrl-btn danger" id="btn-resign" title="Resign">🏳 Resign</button>
+        <button class="ctrl-btn" id="btn-new" title="New Game">＋ New Game</button>
+      </div>
+    </main>
+
+    <!-- Right Panel: Move History -->
+    <aside class="side-panel right-panel">
+      <div class="panel-card history-card">
+        <div class="history-header">
+          <span>Move History</span>
+          <button class="icon-btn" id="btn-sound" title="Toggle Sound">🔊</button>
+        </div>
+        <div class="move-list" id="move-list"></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- ===== PROMOTION DIALOG ===== -->
+<div id="promo-dialog" class="dialog-overlay" style="display:none">
+  <div class="dialog-card">
+    <h2>Promote Pawn</h2>
+    <div class="promo-options" id="promo-options"></div>
+  </div>
+</div>
+
+<!-- ===== GAME OVER DIALOG ===== -->
+<div id="gameover-dialog" class="dialog-overlay" style="display:none">
+  <div class="dialog-card">
+    <div class="gameover-icon" id="gameover-icon">🏆</div>
+    <h2 id="gameover-title">Checkmate!</h2>
+    <p id="gameover-subtitle">White wins</p>
+    <div class="dialog-actions">
+      <button class="start-btn small" id="btn-rematch">Rematch</button>
+      <button class="ctrl-btn" id="btn-menu">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/pieces.js"></script>
+<script src="js/chess.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

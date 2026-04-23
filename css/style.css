@@ -157,6 +157,62 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: block; width: 100%; height: 100%;
 }
 
+/* Online Lobby */
+#online-lobby { margin-top: 0.75rem; }
+.lobby-options { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.lobby-btn {
+  width: 100%; padding: 0.65rem 1.5rem;
+  border-radius: 10px; font-size: 0.92rem; font-weight: 600;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #fff; border: none;
+  transition: all var(--trans);
+  box-shadow: 0 4px 12px rgba(56,139,253,0.3);
+}
+.lobby-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(56,139,253,0.45); }
+.lobby-btn.secondary {
+  background: var(--bg3); color: var(--accent);
+  border: 1px solid var(--accent); box-shadow: none;
+  width: auto; padding: 0.65rem 1.2rem;
+}
+.lobby-btn.secondary:hover { background: rgba(88,166,255,0.1); }
+.lobby-or { font-size: 0.8rem; color: var(--text2); }
+.join-row { display: flex; gap: 0.5rem; width: 100%; }
+.join-row input {
+  flex: 1; padding: 0.6rem 0.85rem;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg3); color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; text-align: center;
+  transition: border-color var(--trans);
+}
+.join-row input:focus { outline: none; border-color: var(--accent); }
+.room-code-box {
+  background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2);
+  border-radius: 12px; padding: 1rem 1.25rem;
+  text-align: center; margin-bottom: 0.75rem;
+}
+.room-code-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 0.35rem; }
+.room-code-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.2rem; font-weight: 700; letter-spacing: 0.18em;
+  color: var(--accent); margin-bottom: 0.6rem;
+}
+.copy-btn {
+  font-size: 0.82rem; padding: 0.35rem 0.8rem;
+  border-radius: 6px; background: var(--bg3);
+  border: 1px solid var(--border); color: var(--text2);
+  transition: all var(--trans);
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.waiting-msg { text-align: center; color: var(--text2); font-size: 0.88rem; }
+.lobby-error {
+  background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3);
+  border-radius: 8px; padding: 0.6rem 0.85rem;
+  color: var(--danger); font-size: 0.85rem; text-align: center;
+  margin-top: 0.5rem;
+}
+
 /* Time Control UI */
 .tc-categories {
   display: flex; flex-wrap: wrap; gap: 0.4rem;

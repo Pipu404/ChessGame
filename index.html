@@ -25,9 +25,36 @@
     <div class="setup-section">
       <label class="setup-label">Game Mode</label>
       <div class="btn-group" id="mode-group">
-        <button class="toggle-btn active" data-value="pvp" id="btn-pvp">👥 Player vs Player</button>
-        <button class="toggle-btn" data-value="pva" id="btn-pva">🤖 Player vs AI</button>
+        <button class="toggle-btn active" data-value="pvp" id="btn-pvp">👥 Local PvP</button>
+        <button class="toggle-btn" data-value="pva" id="btn-pva">🤖 vs AI</button>
+        <button class="toggle-btn" data-value="online" id="btn-online">🌐 Play Online</button>
       </div>
+    </div>
+
+    <!-- Online Lobby (shown when Play Online is selected) -->
+    <div id="online-lobby" style="display:none">
+      <div class="lobby-options" id="lobby-options">
+        <button class="lobby-btn" id="btn-create-room">🎮 Create Room</button>
+        <div class="lobby-or">— or —</div>
+        <div class="join-row">
+          <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6"
+            autocomplete="off" autocapitalize="characters" spellcheck="false" />
+          <button class="lobby-btn secondary" id="btn-join-room">Join</button>
+        </div>
+      </div>
+
+      <!-- Waiting for opponent (shown after room created) -->
+      <div id="lobby-waiting" style="display:none">
+        <div class="room-code-box">
+          <div class="room-code-label">Share this code with your friend:</div>
+          <div class="room-code-value" id="room-code-display">-----</div>
+          <button class="copy-btn" id="btn-copy-code">📋 Copy Code</button>
+        </div>
+        <div class="waiting-msg">⏳ Waiting for opponent to join…</div>
+      </div>
+
+      <!-- Error message -->
+      <div id="lobby-error" class="lobby-error" style="display:none"></div>
     </div>
 
     <div class="setup-section" id="ai-options" style="display:none">
@@ -233,11 +260,13 @@
   </div>
 </div>
 
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/pieces.js"></script>
 <script src="js/chess.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/online.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

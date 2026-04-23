@@ -8,13 +8,14 @@ class App {
     this.ai      = new ChessAI('medium');
     this.audio   = new AudioEngine();
     this.ui      = new ChessUI(this.engine, this.audio);
+    this.online  = new OnlineManager();
 
     // Settings
     this.mode        = 'pvp';
     this.playerColor = 'w';
     this.difficulty  = 'medium';
-    this.tcBase      = 0;   // base time in seconds (0 = no timer)
-    this.tcInc       = 0;   // increment in seconds per move
+    this.tcBase      = 0;
+    this.tcInc       = 0;
     this.theme       = 'classic';
 
     // Timer state
@@ -24,6 +25,7 @@ class App {
 
     this._bindSetup();
     this._bindGame();
+    this._bindOnlineLobby();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -33,7 +35,15 @@ class App {
     // Toggle groups
     this._makeToggle('mode-group', val => {
       this.mode = val;
-      document.getElementById('ai-options').style.display = val === 'pva' ? '' : 'none';
+      document.getElementById('ai-options').style.display   = val === 'pva'    ? '' : 'none';
+      document.getElementById('online-lobby').style.display = val === 'online' ? '' : 'none';
+      document.getElementById('start-btn').style.display    = val === 'online' ? 'none' : '';
+      // Reset lobby state when switching modes
+      if (val !== 'online') {
+        document.getElementById('lobby-waiting').style.display = 'none';
+        document.getElementById('lobby-options').style.display = '';
+        document.getElementById('lobby-error').style.display   = 'none';
+      }
     });
     this._makeToggle('color-group', val => this.playerColor = val);
     this._makeToggle('diff-group',  val => this.difficulty = val);
@@ -50,6 +60,61 @@ class App {
     });
 
     document.getElementById('start-btn').addEventListener('click', () => this._startGame());
+  }
+
+  // ── Online Lobby ──────────────────────────────────────────────────────────
+  _bindOnlineLobby() {
+    const showError = msg => {
+      const el = document.getElementById('lobby-error');
+      el.textContent = msg;
+      el.style.display = msg ? '' : 'none';
+    };
+
+    // Create Room
+    document.getElementById('btn-create-room').addEventListener('click', () => {
+      showError('');
+      this.online.onRoomCreated = code => {
+        document.getElementById('room-code-display').textContent = code;
+        document.getElementById('lobby-options').style.display = 'none';
+        document.getElementById('lobby-waiting').style.display = '';
+      };
+      this.online.onColorAssigned = color => { this.playerColor = color; };
+      this.online.onGameStart = ({ tcBase, tcInc }) => {
+        this.tcBase = tcBase; this.tcInc = tcInc;
+        this._startOnlineGame();
+      };
+      this.online.onJoinError = msg => showError(msg);
+      this.online.createRoom(this.tcBase, this.tcInc);
+    });
+
+    // Join Room
+    document.getElementById('btn-join-room').addEventListener('click', () => {
+      const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+      if (!code) return showError('Please enter a room code.');
+      showError('');
+      this.online.onColorAssigned = color => { this.playerColor = color; };
+      this.online.onGameStart = ({ tcBase, tcInc }) => {
+        this.tcBase = tcBase; this.tcInc = tcInc;
+        this._startOnlineGame();
+      };
+      this.online.onJoinError = msg => showError(msg);
+      this.online.joinRoom(code);
+    });
+
+    // Allow pressing Enter in code input to join
+    document.getElementById('room-code-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-join-room').click();
+    });
+
+    // Copy code button
+    document.getElementById('btn-copy-code').addEventListener('click', () => {
+      const code = document.getElementById('room-code-display').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('btn-copy-code');
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => btn.textContent = '📋 Copy Code', 2000);
+      });
+    });
   }
 
   _makeToggle(groupId, onChange) {
@@ -175,6 +240,120 @@ class App {
     if (this.mode === 'pva' && this.playerColor === 'b') {
       this._triggerAI();
     }
+  }
+
+  // ── Online Game Start ─────────────────────────────────────────────────────
+  _startOnlineGame() {
+    // Reset engine
+    this.engine.reset();
+    this.ui.selected = null;
+    this.ui.legalMoves = [];
+    this.ui.setTheme(this.theme);
+
+    // Flip board so player always sees their pieces at the bottom
+    if (this.playerColor === 'b') {
+      if (!this.ui.flipped) this.ui.flip();
+    } else {
+      if (this.ui.flipped) this.ui.flip();
+    }
+
+    // Timers
+    this._stopTimer();
+    this.timers = { w: this.tcBase, b: this.tcBase };
+    this._renderClocks();
+
+    // Player labels
+    if (this.playerColor === 'w') {
+      document.getElementById('name-bottom').textContent   = 'You (White)';
+      document.getElementById('avatar-bottom').textContent = '♔';
+      document.getElementById('name-top').textContent      = 'Opponent (Black)';
+      document.getElementById('avatar-top').textContent    = '♚';
+    } else {
+      document.getElementById('name-top').textContent      = 'You (Black)';
+      document.getElementById('avatar-top').textContent    = '♚';
+      document.getElementById('name-bottom').textContent   = 'Opponent (White)';
+      document.getElementById('avatar-bottom').textContent = '♔';
+    }
+
+    this.ui.render();
+    this.ui.renderHistory();
+    this.ui.renderCaptured();
+    this._updateStatus();
+    this._updateTurnIndicator();
+
+    // Show game screen
+    document.getElementById('setup-screen').classList.remove('active');
+    document.getElementById('game-screen').classList.add('active');
+    document.getElementById('gameover-dialog').style.display = 'none';
+
+    if (this.tcBase > 0) this._startTimer();
+
+    // Lock board when it's NOT the player's turn
+    this.ui.boardEl.style.pointerEvents =
+      this.engine.turn === this.playerColor ? '' : 'none';
+
+    // Move callback: send move to opponent
+    this.ui.onMoveMade = snap => {
+      if (snap.turn === this.playerColor) {
+        // Human just moved — relay to opponent
+        this.online.sendMove(snap.move.from, snap.move.to, snap.move.promo || null);
+        this.ui.boardEl.style.pointerEvents = 'none'; // lock until opponent moves
+      }
+      this._onMoveMade(snap);
+    };
+
+    // Receive opponent's move
+    this.online.onOpponentMove = ({ from, to, promo }) => {
+      const result = this.engine.makeMove(from, to, promo || null);
+      if (result) {
+        this.ui.lastMove = { from, to };
+        if (result.move.castle)        this.audio.castle();
+        else if (result.capturedPiece) this.audio.capture();
+        else                           this.audio.move();
+        if (this.engine.isInCheck(this.engine.turn)) setTimeout(() => this.audio.check(), 150);
+        this.ui.selected = null;
+        this.ui.legalMoves = [];
+        this.ui.render();
+        this.ui.renderHistory();
+        this.ui.renderCaptured();
+        this._updateStatus();
+        this._updateTurnIndicator();
+        if (this.engine.status !== 'playing') {
+          this._stopTimer();
+          this._showGameOver();
+          this.audio.gameOver(this.engine.status === 'checkmate');
+        } else {
+          // Add increment to opponent who just moved
+          if (this.tcInc > 0) {
+            const oppColor = this.playerColor === 'w' ? 'b' : 'w';
+            this.timers[oppColor] = Math.min(
+              this.timers[oppColor] + this.tcInc,
+              this.tcBase + this.tcInc * 300
+            );
+            this._renderClocks();
+          }
+          this.ui.boardEl.style.pointerEvents = ''; // unlock for player's turn
+        }
+      }
+    };
+
+    // Opponent disconnected
+    this.online.onOpponentDisconnected = () => {
+      this._stopTimer();
+      document.getElementById('gameover-icon').textContent   = '🏆';
+      document.getElementById('gameover-title').textContent   = 'Opponent Left';
+      document.getElementById('gameover-subtitle').textContent = 'Your opponent disconnected.';
+      document.getElementById('gameover-dialog').style.display = 'flex';
+    };
+
+    // Opponent resigned
+    this.online.onOpponentResigned = () => {
+      this._stopTimer();
+      document.getElementById('gameover-icon').textContent    = '🏆';
+      document.getElementById('gameover-title').textContent   = 'You Win!';
+      document.getElementById('gameover-subtitle').textContent = 'Opponent resigned.';
+      document.getElementById('gameover-dialog').style.display = 'flex';
+    };
   }
 
   // ══════════════════════════════════════════════════════════════════════════

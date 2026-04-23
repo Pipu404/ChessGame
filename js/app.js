@@ -202,14 +202,17 @@ class App {
       return;
     }
 
-    // AI turn
+    // AI turn — pause clock while AI thinks, restart after move
     if (this.mode === 'pva' && this.engine.turn !== this.playerColor) {
-      // Disable board input while AI thinks
+      this._stopTimer();                           // pause player clock
       this.ui.boardEl.style.pointerEvents = 'none';
       this._setStatus('AI is thinking…');
       this.ai.think(this.engine, this.engine.turn, move => {
-        if (!move) return;
-        this.engine.turn = this.engine.turn; // ensure
+        if (!move) {
+          this.ui.boardEl.style.pointerEvents = '';
+          if (this.tcBase > 0) this._startTimer(); // resume if AI couldn't move
+          return;
+        }
         const result = this.engine.makeMove(move.from, move.to, move.promo || 'q');
         if (result) {
           this.ui.lastMove = { from: move.from, to: move.to };
@@ -226,9 +229,10 @@ class App {
           this._updateStatus();
           this._updateTurnIndicator();
           if (this.engine.status !== 'playing') {
-            this._stopTimer();
             this._showGameOver();
             this.audio.gameOver(this.engine.status === 'checkmate');
+          } else if (this.tcBase > 0) {
+            this._startTimer();                    // resume player's clock
           }
         }
         this.ui.boardEl.style.pointerEvents = '';
@@ -237,10 +241,15 @@ class App {
   }
 
   _triggerAI() {
+    this._stopTimer();                             // pause clock while AI thinks
     this.ui.boardEl.style.pointerEvents = 'none';
     this._setStatus('AI is thinking…');
     this.ai.think(this.engine, this.engine.turn, move => {
-      if (!move) { this.ui.boardEl.style.pointerEvents = ''; return; }
+      if (!move) {
+        this.ui.boardEl.style.pointerEvents = '';
+        if (this.tcBase > 0) this._startTimer();
+        return;
+      }
       const result = this.engine.makeMove(move.from, move.to, move.promo || 'q');
       if (result) {
         this.ui.lastMove = { from: move.from, to: move.to };
@@ -254,6 +263,12 @@ class App {
         this.ui.renderCaptured();
         this._updateStatus();
         this._updateTurnIndicator();
+        if (this.engine.status !== 'playing') {
+          this._showGameOver();
+          this.audio.gameOver(this.engine.status === 'checkmate');
+        } else if (this.tcBase > 0) {
+          this._startTimer();                      // start player's clock
+        }
       }
       this.ui.boardEl.style.pointerEvents = '';
     });
@@ -311,11 +326,6 @@ class App {
     this._timerInterval = setInterval(() => {
       if (!this.timerActive || this.engine.status !== 'playing') return;
       const t = this.engine.turn;
-
-      // In PvA mode: only count down the human player's clock.
-      // The AI moves in milliseconds so ticking its clock is unfair.
-      if (this.mode === 'pva' && t !== this.playerColor) return;
-
       this.timers[t] = Math.max(0, this.timers[t] - 1);
       this._renderClocks();
       if (this.timers[t] === 0) {

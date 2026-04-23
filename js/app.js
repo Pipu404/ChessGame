@@ -311,6 +311,11 @@ class App {
     this._timerInterval = setInterval(() => {
       if (!this.timerActive || this.engine.status !== 'playing') return;
       const t = this.engine.turn;
+
+      // In PvA mode: only count down the human player's clock.
+      // The AI moves in milliseconds so ticking its clock is unfair.
+      if (this.mode === 'pva' && t !== this.playerColor) return;
+
       this.timers[t] = Math.max(0, this.timers[t] - 1);
       this._renderClocks();
       if (this.timers[t] === 0) {

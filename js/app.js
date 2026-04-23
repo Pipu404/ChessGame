@@ -202,15 +202,33 @@ class App {
       return;
     }
 
-    // AI turn — pause clock while AI thinks, restart after move
+    // AI turn — measure real elapsed time and deduct from AI clock
     if (this.mode === 'pva' && this.engine.turn !== this.playerColor) {
-      this._stopTimer();                           // pause player clock
+      this._stopTimer();                           // pause player clock while AI thinks
+      const aiColor = this.engine.turn;
+      const aiThinkStart = Date.now();             // record when AI started thinking
       this.ui.boardEl.style.pointerEvents = 'none';
       this._setStatus('AI is thinking…');
-      this.ai.think(this.engine, this.engine.turn, move => {
+      this.ai.think(this.engine, aiColor, move => {
+        // Deduct actual thinking time (minimum 1s so AI clock always counts)
+        const elapsed = Math.max(1, Math.round((Date.now() - aiThinkStart) / 1000));
+        if (this.tcBase > 0) {
+          this.timers[aiColor] = Math.max(0, this.timers[aiColor] - elapsed);
+          // Check if AI ran out of time
+          if (this.timers[aiColor] === 0) {
+            this._renderClocks();
+            this.engine.status = 'checkmate';
+            this.engine.winner = aiColor === 'w' ? 'b' : 'w';
+            this._updateStatus();
+            this._showGameOver();
+            this.audio.gameOver(false);
+            this.ui.boardEl.style.pointerEvents = '';
+            return;
+          }
+        }
         if (!move) {
           this.ui.boardEl.style.pointerEvents = '';
-          if (this.tcBase > 0) this._startTimer(); // resume if AI couldn't move
+          if (this.tcBase > 0) this._startTimer();
           return;
         }
         const result = this.engine.makeMove(move.from, move.to, move.promo || 'q');
@@ -228,6 +246,7 @@ class App {
           this.ui.renderCaptured();
           this._updateStatus();
           this._updateTurnIndicator();
+          this._renderClocks();                    // show updated AI clock
           if (this.engine.status !== 'playing') {
             this._showGameOver();
             this.audio.gameOver(this.engine.status === 'checkmate');
@@ -241,10 +260,17 @@ class App {
   }
 
   _triggerAI() {
-    this._stopTimer();                             // pause clock while AI thinks
+    this._stopTimer();
+    const aiColor = this.engine.turn;
+    const aiThinkStart = Date.now();
     this.ui.boardEl.style.pointerEvents = 'none';
     this._setStatus('AI is thinking…');
-    this.ai.think(this.engine, this.engine.turn, move => {
+    this.ai.think(this.engine, aiColor, move => {
+      const elapsed = Math.max(1, Math.round((Date.now() - aiThinkStart) / 1000));
+      if (this.tcBase > 0) {
+        this.timers[aiColor] = Math.max(0, this.timers[aiColor] - elapsed);
+        this._renderClocks();
+      }
       if (!move) {
         this.ui.boardEl.style.pointerEvents = '';
         if (this.tcBase > 0) this._startTimer();
@@ -267,7 +293,7 @@ class App {
           this._showGameOver();
           this.audio.gameOver(this.engine.status === 'checkmate');
         } else if (this.tcBase > 0) {
-          this._startTimer();                      // start player's clock
+          this._startTimer();
         }
       }
       this.ui.boardEl.style.pointerEvents = '';

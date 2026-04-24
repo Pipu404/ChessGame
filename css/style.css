@@ -341,7 +341,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   background: rgba(22,27,34,0.92);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.5rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   backdrop-filter: blur(10px);
   width: 100%;
 }
@@ -356,7 +356,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ── CLOCK — big & clearly readable ── */
 .player-clock {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--text);
   background: var(--bg3);
@@ -433,7 +433,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .board-area {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.2rem;
   width: 100%;
   min-height: 0;
 }
@@ -563,9 +563,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 /* Status bar */
 .status-bar {
-  text-align: center; font-size: 0.9rem;
+  text-align: center; font-size: 0.85rem;
   font-weight: 500; color: var(--text2);
-  min-height: 22px;
+  min-height: 16px;
+  margin: 0.1rem 0;
 }
 #status-text { transition: color var(--trans); }
 #status-text.check  { color: var(--warn); }
@@ -573,12 +574,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 /* Controls */
 .controls {
-  display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+  display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 0.15rem;
 }
 .ctrl-btn {
-  padding: 0.45rem 0.9rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  font-size: 0.82rem; font-weight: 500;
+  font-size: 0.8rem; font-weight: 500;
   color: var(--text2);
   background: var(--bg3);
   border: 1px solid var(--border);

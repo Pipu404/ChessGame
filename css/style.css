@@ -631,15 +631,68 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE — Tablet & Mobile
    ============================================================ */
+
+/* Tablet */
 @media (max-width: 1000px) {
-  .game-layout { grid-template-columns: 130px 1fr 150px; gap: 0.5rem; padding: 0.5rem; }
-  .player-clock { font-size: 1.1rem; min-width: 68px; }
+  .game-layout { grid-template-columns: 120px 1fr 140px; gap: 0.5rem; padding: 0.5rem; }
+  .player-clock { font-size: 1rem; min-width: 60px; padding: 0.3rem 0.6rem; }
+  .setup-card { max-width: 95vw; padding: 1.5rem; }
 }
-@media (max-width: 700px) {
-  .game-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; overflow-y: auto; }
-  .left-panel { flex-direction: row; flex-wrap: wrap; height: auto; }
-  .right-panel { height: 140px; }
-  .history-card { height: 100%; }
+
+/* Mobile (portrait) */
+@media (max-width: 680px) {
+  /* Setup screen */
+  .setup-card { padding: 1.25rem 1rem; border-radius: 16px; max-width: 100vw; }
+  .logo h1 { font-size: 1.6rem; }
+  .tagline { font-size: 0.8rem; }
+  .btn-group { flex-wrap: wrap; }
+  .toggle-btn { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+  .tc-categories { gap: 0.3rem; }
+  .tc-cat { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
+  .tc-preset { font-size: 0.8rem; padding: 0.4rem 0.6rem; }
+
+  /* Game screen — stack vertically */
+  .game-screen { padding: 0; }
+  .game-layout {
+    display: flex; flex-direction: column;
+    height: 100dvh; overflow: hidden;
+  }
+
+  /* Player bar — compact horizontal */
+  .player-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.4rem 0.75rem; min-height: 48px;
+  }
+  .player-info { gap: 0.4rem; }
+  .player-avatar { width: 28px; height: 28px; font-size: 1rem; }
+  .player-name { font-size: 0.8rem; }
+  .player-clock { font-size: 1rem; padding: 0.25rem 0.5rem; min-width: 54px; }
+
+  /* Board — fill available width */
+  .board-area { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #chess-board { max-width: min(98vw, calc(100dvh - 180px)); max-height: min(98vw, calc(100dvh - 180px)); }
+
+  /* Hide side panels on mobile */
+  .left-panel, .right-panel { display: none; }
+
+  /* Controls — compact row */
+  .controls-bar { padding: 0.35rem 0.5rem; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
+  .ctrl-btn { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
+
+  /* Game over dialog */
+  .dialog-card { padding: 1.5rem 1rem; margin: 1rem; }
+  .dialog-actions { flex-wrap: wrap; }
+
+  /* Lobby */
+  .room-code-value { font-size: 1.8rem; }
+  .join-row { flex-direction: row; }
+  #room-code-input { font-size: 0.95rem; }
+}
+
+/* Very small screens (iPhone SE etc.) */
+@media (max-width: 375px) {
+  .player-clock { font-size: 0.9rem; min-width: 48px; }
+  #chess-board { max-width: 97vw; max-height: 97vw; }
 }
